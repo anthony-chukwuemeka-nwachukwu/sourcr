@@ -1,11 +1,5 @@
 """
-models.py
-
-The typed data contracts that flow between stages of the pipeline.
-
-We grow this file one agent at a time: it currently holds the shared input
-contract (the investment thesis) plus the Research crew's output. Later
-slices add the models their agents produce (profiles, contacts, briefs, etc.).
+Shared input contract — the investment thesis every crew reads from.
 """
 
 from __future__ import annotations
@@ -13,12 +7,8 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
-
-# --------------------------------------------------------------------------- #
-# Shared input contract                                                       #
-# --------------------------------------------------------------------------- #
 
 class IndustryFocus(str, Enum):
     """AlphaCurrent's three target verticals."""
@@ -35,10 +25,7 @@ class OwnershipType(str, Enum):
 
 
 class InvestmentThesis(BaseModel):
-    """The mandate definition — what the client is looking to acquire.
-
-    Every agent reads from this, so it lives in the shared base.
-    """
+    """The mandate definition — what the client is looking to acquire."""
 
     industry: IndustryFocus
     sub_sector: str = Field(..., description="e.g. 'commercial HVAC services'")
@@ -71,36 +58,7 @@ class InvestmentThesis(BaseModel):
         return "\n".join(parts)
 
 
-# --------------------------------------------------------------------------- #
-# Research crew output                                                         #
-# --------------------------------------------------------------------------- #
-
-class Candidate(BaseModel):
-    """A raw company surfaced by the Research crew — not yet verified."""
-    name: str
-    website: Optional[str] = None
-    domain: Optional[str] = Field(
-        None, description="Normalized domain (e.g. 'abcmech.com') — used as the store key later"
-    )
-    rationale: str = Field(..., description="Why it plausibly fits the thesis")
-    source_urls: list[str] = Field(default_factory=list)
-
-    @field_validator("source_urls")
-    @classmethod
-    def keep_real_urls(cls, urls: list[str]) -> list[str]:
-        """Drop blanks and keep only http(s) links — cheap hallucination filter."""
-        return [u.strip() for u in urls if u and u.strip().startswith("http")]
-
-
-class CandidateList(BaseModel):
-    """Structured output of the Research crew."""
-    candidates: list[Candidate] = Field(default_factory=list)
-
-
-# --------------------------------------------------------------------------- #
-# Example thesis (used to test crews in isolation)                            #
-# --------------------------------------------------------------------------- #
-
+# Example thesis used to test crews in isolation.
 EXAMPLE_THESIS = InvestmentThesis(
     industry=IndustryFocus.INDUSTRIAL_INFRASTRUCTURE,
     sub_sector="commercial HVAC and mechanical services",

@@ -1,0 +1,30 @@
+"""
+Data contracts for the pipeline, organized by stage.
+
+Everything is re-exported here, so callers keep importing from one place
+(`from sourcr.models import X`) no matter which submodule X lives in:
+
+    shared    -> InvestmentThesis + enums (used by every crew)
+    research  -> Candidate / CandidateList   (Research crew output)
+    profiler  -> CompanyProfile / FactClaim  (Profiler crew output)
+"""
+
+from .profiler import CompanyProfile, ConfidenceLevel, FactClaim, OverallConfidence
+from .research import Candidate, CandidateList
+from .shared import EXAMPLE_THESIS, IndustryFocus, InvestmentThesis, OwnershipType
+
+__all__ = [
+    # shared
+    "IndustryFocus",
+    "OwnershipType",
+    "InvestmentThesis",
+    "EXAMPLE_THESIS",
+    # research
+    "Candidate",
+    "CandidateList",
+    # profiler
+    "ConfidenceLevel",
+    "OverallConfidence",
+    "FactClaim",
+    "CompanyProfile",
+]
