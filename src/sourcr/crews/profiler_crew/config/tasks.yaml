@@ -1,0 +1,42 @@
+# Task definition for the Profiler crew.
+# {company_name}, {company_website}, and {thesis} come from the kickoff inputs.
+
+profile_task:
+  description: >
+    Research and verify the company "{company_name}" (website: {company_website})
+    and assess how well it fits this investment thesis:
+
+    {thesis}
+
+    Use web search and page extraction to confirm the facts that matter most:
+      - ownership (founder-led / family-owned vs. PE-backed or public)
+      - approximate size (revenue band and/or employee count)
+      - years in business / longevity
+      - core services and whether revenue is recurring vs. project-based
+      - locations and geography
+
+    Tag EVERY fact with a confidence level based on its sources:
+      - VERIFIED:    corroborated by 2+ INDEPENDENT sources (not just the
+                     company's own website)
+      - LIKELY:      supported by one credible source (the company site, a filing)
+      - UNVERIFIED:  only a weak source (a directory or aggregator)
+      - CONFLICTING: sources disagree — state the discrepancy, do not pick one
+
+    Rules:
+      - Do not inflate confidence; multiple pages of the same domain count as
+        ONE source. Include the source URL(s) behind each fact.
+      - Report each company attribute (especially OWNERSHIP) as a SINGLE fact.
+        If it has changed over time or sources disagree, do NOT emit separate
+        contradictory facts — consolidate into one CONFLICTING fact led by the
+        most recent authoritative source (e.g. "historically family-owned; as
+        of 2025 PE-backed via Percheron — no longer founder-led"). Recent
+        ownership changes and acquisitions must dominate the ownership view.
+
+    Finish with a short fit_assessment against the thesis and an
+    overall_confidence flag (HIGH / MEDIUM / LOW / NEEDS_REVIEW) reflecting how
+    well-supported the profile is overall.
+  expected_output: >
+    A company profile containing: the company name, website/domain, a list of
+    confidence-tagged facts (each with sources), a short fit assessment versus
+    the thesis, and an overall confidence flag.
+  agent: profiler
