@@ -18,7 +18,15 @@ research_task:
       - name
       - website (and the bare domain, e.g. "abcmech.com", if you can tell)
       - a one-sentence rationale for why it fits the thesis
-      - the source URL(s) where you found it
+      - source URLs (see the sourcing rules below)
+
+    Sourcing rules for the URLs:
+      - Record the company's official website once — this is the primary source.
+      - Where possible, add ONE independent corroborating source (a business
+        directory, LinkedIn, a trade-association list, or news) so the lead
+        can be cross-checked, not just self-reported.
+      - Do NOT list multiple pages from the same domain — one representative
+        URL per distinct source is enough.
 
     Aim for {max_candidates} strong candidates. Prioritize fit and quality
     over quantity — returning fewer well-justified companies is better than
