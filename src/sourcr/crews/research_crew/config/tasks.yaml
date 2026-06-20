@@ -1,0 +1,29 @@
+# Task definitions for the Research crew.
+# {thesis} and {max_candidates} are interpolated from the kickoff inputs.
+
+research_task:
+  description: >
+    Find privately held companies that plausibly fit this investment thesis:
+
+    {thesis}
+
+    Use web search to identify candidates. Favor founder-led or family-owned,
+    privately held businesses in the stated industry, sub-sector, and
+    geography, and within the size band where one is given.
+
+    Screen OUT obvious non-fits: publicly traded companies, companies clearly
+    outside the geography, and businesses obviously outside the size range.
+
+    For each company, capture:
+      - name
+      - website (and the bare domain, e.g. "abcmech.com", if you can tell)
+      - a one-sentence rationale for why it fits the thesis
+      - the source URL(s) where you found it
+
+    Aim for {max_candidates} strong candidates. Prioritize fit and quality
+    over quantity — returning fewer well-justified companies is better than
+    padding the list with weak matches.
+  expected_output: >
+    A structured list of candidate companies, each with a name, website,
+    domain, a one-sentence fit rationale, and at least one source URL.
+  agent: researcher
