@@ -15,12 +15,34 @@ Run standalone (from the src/ directory):
     python -m sourcr.crews.profiler_crew.profiler_crew
 """
 
+from typing import Any, Tuple
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import TavilySearchTool
 
 from sourcr.llm import get_llm
 from sourcr.models import CompanyProfile
+
+
+def validate_profile(output) -> Tuple[bool, Any]:
+    """Guardrail: re-run if the profile is structurally incomplete.
+
+    We only assert that the agent did the work and sourced it — not whether
+    the facts are true (that's what the confidence tags already express).
+    Returning (False, message) makes CrewAI re-run with the message as feedback.
+    """
+    profile: CompanyProfile = output.pydantic
+    if profile is None:
+        return (False, "No profile was produced.")
+    if not profile.facts:
+        return (False, "No facts reported — research and verify the company before answering.")
+    for f in profile.facts:
+        if not f.sources:
+            return (False, f"The fact '{f.fact[:60]}…' has no source URL — every fact needs one.")
+    if not profile.fit_assessment.strip():
+        return (False, "fit_assessment is empty — assess the company against the thesis.")
+    return (True, profile)
 
 
 @CrewBase
@@ -44,6 +66,8 @@ class ProfilerCrew:
         return Task(
             config=self.tasks_config["profile_task"],
             output_pydantic=CompanyProfile,
+            guardrail=validate_profile,      # re-run if the profile is incomplete
+            max_retries=3,
         )
 
     @crew
