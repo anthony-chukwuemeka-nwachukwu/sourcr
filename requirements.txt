@@ -1,0 +1,11 @@
+# Core framework: agents, tasks, and flows
+crewai>=1.14.7,<2.0.0
+
+# Prebuilt tools, including SerperDevTool for web search
+crewai-tools>=0.17.0
+
+# Typed data contracts passed between crews
+pydantic>=2.0.0
+
+# Loads ANTHROPIC_API_KEY / SERPER_API_KEY from .env
+python-dotenv>=1.0.0
