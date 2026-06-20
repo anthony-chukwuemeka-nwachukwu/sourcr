@@ -13,12 +13,39 @@ Run standalone (from the src/ directory):
     python -m sourcr.crews.research_crew.research_crew
 """
 
+from typing import Any, Tuple
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
 
 from sourcr.llm import get_llm
 from sourcr.models import CandidateList
+
+
+def validate_candidates(output) -> Tuple[bool, Any]:
+    """Guardrail: checks the research output and triggers a re-run if it's bad.
+
+    Returning (False, message) makes CrewAI re-run the task with `message` as
+    feedback (up to max_retries). Returning (True, result) accepts the output.
+
+    We only check what's cheap and deterministic here — structure, not truth.
+    Verifying the companies are real is the Profiler's job downstream.
+    """
+    result: CandidateList = output.pydantic
+    if result is None or not result.candidates:
+        return (False, "No candidates returned. Search again and return at least one.")
+
+    seen: set[str] = set()
+    for c in result.candidates:
+        if not c.source_urls:
+            return (False, f"'{c.name}' has no source URL — every company needs one.")
+        key = (c.domain or c.name).strip().lower()
+        if key in seen:
+            return (False, f"Duplicate company '{c.name}' — return distinct companies only.")
+        seen.add(key)
+
+    return (True, result)
 
 
 @CrewBase
@@ -42,7 +69,9 @@ class ResearchCrew:
     def research_task(self) -> Task:
         return Task(
             config=self.tasks_config["research_task"],
-            output_pydantic=CandidateList,  # force structured output
+            output_pydantic=CandidateList,   # force structured output
+            guardrail=validate_candidates,   # re-run if output is inconsistent
+            max_retries=3,                   # cap the re-runs
         )
 
     @crew

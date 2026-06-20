@@ -13,7 +13,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # --------------------------------------------------------------------------- #
@@ -84,6 +84,12 @@ class Candidate(BaseModel):
     )
     rationale: str = Field(..., description="Why it plausibly fits the thesis")
     source_urls: list[str] = Field(default_factory=list)
+
+    @field_validator("source_urls")
+    @classmethod
+    def keep_real_urls(cls, urls: list[str]) -> list[str]:
+        """Drop blanks and keep only http(s) links — cheap hallucination filter."""
+        return [u.strip() for u in urls if u and u.strip().startswith("http")]
 
 
 class CandidateList(BaseModel):
