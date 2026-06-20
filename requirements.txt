@@ -9,3 +9,5 @@ pydantic>=2.0.0
 
 # Loads ANTHROPIC_API_KEY / SERPER_API_KEY from .env
 python-dotenv>=1.0.0
+
+#.venv\Scripts\Activate.ps1
