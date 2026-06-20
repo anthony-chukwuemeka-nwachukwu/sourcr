@@ -5,6 +5,10 @@ These are deterministic — no LLM calls and no network. They exercise only the
 Python validation logic (the guardrail and the URL field validator), so they
 run fast, cost nothing, and give the same result every time. Validating the
 LLM's actual answers is the job of guardrails at runtime, not unit tests.
+
+Run from the project root:
+    python -m pytest                                              # whole suite
+    python -m pytest tests/crews/research_crew/test_guardrail.py  # just this file
 """
 
 from types import SimpleNamespace
