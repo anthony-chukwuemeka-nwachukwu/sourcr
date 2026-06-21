@@ -78,11 +78,15 @@ src/sourcr/
     ├── profiler_crew/   # verify + confidence-tag    (Tavily)
     ├── contact_crew/    # decision-makers            (Serper, public only)
     └── reporting_crew/  # synthesize brief + render.py (Markdown/tables)
+backend/                 # FastAPI service over the pipeline (job + polling)
+frontend/                # React + Vite + Tailwind SPA (calls the backend)
 tests/                   # deterministic unit tests + opt-in integration test
 ```
 
 Each crew is self-contained (`agents.yaml` + `tasks.yaml` + a `@CrewBase`
-class) and runnable on its own.
+class) and runnable on its own. The web layer is fully decoupled: the
+`backend/` API imports `sourcr` and runs the Flow; the `frontend/` SPA only
+talks to that API.
 
 ## Setup
 
@@ -101,6 +105,24 @@ Keys in `.env`: `OPENAI_API_KEY`, `SERPER_API_KEY`, `TAVILY_API_KEY`, and
 via `DEFAULT_MODEL` / `<AGENT>_MODEL`.
 
 ## Running
+
+### Web app (React + FastAPI)
+
+Two processes — the API and the SPA (the Vite dev server proxies `/api` to the backend):
+
+```powershell
+# Terminal 1 — backend API (from the project root, venv active)
+uvicorn backend.main:app --reload --port 8000
+
+# Terminal 2 — frontend
+cd frontend
+npm install      # first time only
+npm run dev      # open the printed http://localhost:5173
+```
+
+Enter a thesis, run the pipeline, and view the briefs + confidence chart.
+
+### CLI
 
 ```powershell
 cd src
@@ -136,4 +158,6 @@ $env:RUN_LIVE=1; python -m pytest tests/test_integration.py -v
 ## Stack
 
 CrewAI 1.14 (agents, tasks, flows) · OpenAI + Anthropic (LiteLLM) · Serper &
-Tavily (search) · Pydantic (typed contracts) · SQLite · matplotlib · pytest.
+Tavily (search) · Pydantic (typed contracts) · SQLite · matplotlib · pytest ·
+FastAPI + Uvicorn (backend) · React + Vite + TypeScript + Tailwind + Recharts
+(frontend).
