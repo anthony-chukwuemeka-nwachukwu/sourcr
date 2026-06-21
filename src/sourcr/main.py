@@ -46,6 +46,7 @@ from sourcr.models import (
     PipelineStatus,
     StoredCompany,
 )
+from sourcr.plot import plot_pipeline_confidence
 from sourcr.store import ResearchStore
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -251,6 +252,12 @@ class SourcingFlow(Flow[SourcingState]):
             if rec.brief:
                 self.state.briefs.append(rec.brief)
                 save_brief_markdown(rec.brief)
+
+        if self.state.briefs:
+            chart = plot_pipeline_confidence(
+                self.state.briefs, OUTPUT_DIR / "pipeline_confidence.png"
+            )
+            _log(f"pipeline confidence chart: {chart}")
 
         _log(f"done — {len(self.state.briefs)} brief(s) written to {OUTPUT_DIR}")
 

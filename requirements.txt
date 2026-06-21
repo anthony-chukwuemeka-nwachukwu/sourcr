@@ -12,6 +12,9 @@ tavily-python>=0.5.0
 # Typed data contracts passed between crews
 pydantic>=2.0.0
 
+# Pipeline-level confidence chart (headless Agg backend)
+matplotlib>=3.8.0
+
 # Loads ANTHROPIC_API_KEY / SERPER_API_KEY from .env
 python-dotenv>=1.0.0
 
