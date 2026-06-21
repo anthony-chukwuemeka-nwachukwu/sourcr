@@ -1,0 +1,39 @@
+# Task definition for the Contact crew.
+# {company_name} and {company_website} come from the kickoff inputs.
+
+find_contacts_task:
+  description: >
+    Identify the likely decision-makers at "{company_name}"
+    (website: {company_website}).
+
+    Find the people who would own or influence a sale: founder(s), owner(s),
+    CEO, president, managing partner, and other senior leadership (C-suite,
+    VPs / principals). Aim to capture the full senior team you can confirm —
+    not just one or two people.
+
+    Build the roster PRIMARILY from the company's own leadership / about / team /
+    management pages and from press releases — these are the most complete and
+    authoritative sources. Then, for each person, optionally look up a public
+    professional profile (e.g. LinkedIn) to enrich the entry.
+
+    For each person, capture:
+      - name
+      - title / role
+      - source_url: the page where you CONFIRMED the name and role — prefer the
+        company's own leadership/about page or a press release.
+      - profile_url: OPTIONAL enrichment — the person's LinkedIn (preferred) or
+        professional webpage. If you cannot find one, leave it blank. Do NOT drop
+        a confirmed decision-maker just because they have no public profile link.
+        (If the only place you found the person is their LinkedIn, it is fine for
+        source_url and profile_url to be the same.)
+
+    Hard rules:
+      - Do NOT collect or infer personal contact details — no cell numbers, no
+        personal or home email addresses, no home addresses.
+      - Do NOT access anything behind a login or paywall.
+      - Do NOT guess names. If you cannot confirm a person from a public source,
+        leave them out — but DO include everyone you can confirm.
+  expected_output: >
+    A set of decision-maker contacts, each with a name, a title/role, the public
+    source URL confirming the role, and an optional professional profile URL.
+  agent: contact_finder

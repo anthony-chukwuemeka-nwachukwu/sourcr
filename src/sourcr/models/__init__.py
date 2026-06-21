@@ -7,8 +7,10 @@ Everything is re-exported here, so callers keep importing from one place
     shared    -> InvestmentThesis + enums (used by every crew)
     research  -> Candidate / CandidateList   (Research crew output)
     profiler  -> CompanyProfile / FactClaim  (Profiler crew output)
+    contact   -> Contact / ContactSet        (Contact crew output)
 """
 
+from .contact import Contact, ContactSet
 from .profiler import CompanyProfile, ConfidenceLevel, FactClaim, OverallConfidence
 from .research import Candidate, CandidateList
 from .shared import EXAMPLE_THESIS, IndustryFocus, InvestmentThesis, OwnershipType
@@ -27,4 +29,7 @@ __all__ = [
     "OverallConfidence",
     "FactClaim",
     "CompanyProfile",
+    # contact
+    "Contact",
+    "ContactSet",
 ]
