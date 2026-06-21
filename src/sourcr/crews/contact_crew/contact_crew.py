@@ -15,12 +15,31 @@ Run standalone (from the src/ directory):
     python -m sourcr.crews.contact_crew.contact_crew
 """
 
+from typing import Any, Tuple
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
 
 from sourcr.llm import get_llm
 from sourcr.models import ContactSet
+
+
+def validate_contacts(output) -> Tuple[bool, Any]:
+    """Guardrail: re-run if the contact set is empty or unsourced.
+
+    Every contact needs a role and the public source URL that confirms it.
+    profile_url is optional enrichment, so it is not required here.
+    """
+    contacts: ContactSet = output.pydantic
+    if contacts is None or not contacts.contacts:
+        return (False, "No decision-makers found — check the company's leadership/about pages and retry.")
+    for c in contacts.contacts:
+        if not c.title.strip():
+            return (False, f"Contact '{c.name}' has no title/role — every contact needs one.")
+        if not c.source_url:
+            return (False, f"Contact '{c.name}' has no source URL — confirm the role from a public page.")
+    return (True, contacts)
 
 
 @CrewBase
@@ -44,6 +63,8 @@ class ContactCrew:
         return Task(
             config=self.tasks_config["find_contacts_task"],
             output_pydantic=ContactSet,
+            guardrail=validate_contacts,     # re-run if empty or unsourced
+            max_retries=3,
         )
 
     @crew
