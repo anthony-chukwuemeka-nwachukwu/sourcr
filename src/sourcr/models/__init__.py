@@ -9,6 +9,7 @@ Everything is re-exported here, so callers keep importing from one place
     profiler  -> CompanyProfile / FactClaim  (Profiler crew output)
     contact   -> Contact / ContactSet        (Contact crew output)
     reporting -> OpportunityBrief             (Reporting crew output)
+    storage   -> StoredCompany / PipelineStatus (what the research store keeps)
 """
 
 from .contact import Contact, ContactSet
@@ -16,6 +17,7 @@ from .profiler import CompanyProfile, ConfidenceLevel, FactClaim, OverallConfide
 from .reporting import OpportunityBrief
 from .research import Candidate, CandidateList
 from .shared import EXAMPLE_THESIS, IndustryFocus, InvestmentThesis, OwnershipType
+from .storage import PipelineStatus, StoredCompany
 
 __all__ = [
     # shared
@@ -36,4 +38,7 @@ __all__ = [
     "ContactSet",
     # reporting
     "OpportunityBrief",
+    # storage
+    "PipelineStatus",
+    "StoredCompany",
 ]
