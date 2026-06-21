@@ -18,6 +18,7 @@ from typing import Any, Tuple
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
+from sourcr.config import is_verbose
 from sourcr.llm import get_llm
 from sourcr.models import OpportunityBrief
 
@@ -53,7 +54,7 @@ class ReportingCrew:
         return Agent(
             config=self.agents_config["brief_writer"],
             llm=get_llm("brief"),
-            verbose=True,
+            verbose=is_verbose(),
             # No tools: synthesis only, no new research.
         )
 
@@ -72,7 +73,7 @@ class ReportingCrew:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
-            verbose=True,
+            verbose=is_verbose(),
         )
 
 

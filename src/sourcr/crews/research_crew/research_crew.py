@@ -19,6 +19,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
 
+from sourcr.config import is_verbose
 from sourcr.llm import get_llm
 from sourcr.models import CandidateList
 
@@ -62,7 +63,7 @@ class ResearchCrew:
             config=self.agents_config["researcher"],
             tools=[SerperDevTool()],        # web search
             llm=get_llm("research"),        # provider-agnostic, per-agent model
-            verbose=True,
+            verbose=is_verbose(),
         )
 
     @task
@@ -80,7 +81,7 @@ class ResearchCrew:
             agents=self.agents,   # auto-collected from @agent methods
             tasks=self.tasks,     # auto-collected from @task methods
             process=Process.sequential,
-            verbose=True,
+            verbose=is_verbose(),
         )
 
 

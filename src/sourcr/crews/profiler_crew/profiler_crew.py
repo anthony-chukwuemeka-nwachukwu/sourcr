@@ -21,6 +21,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import TavilySearchTool
 
+from sourcr.config import is_verbose
 from sourcr.llm import get_llm
 from sourcr.models import CompanyProfile
 
@@ -58,7 +59,7 @@ class ProfilerCrew:
             config=self.agents_config["profiler"],
             tools=[TavilySearchTool()],     # verification reads
             llm=get_llm("profiler"),
-            verbose=True,
+            verbose=is_verbose(),
         )
 
     @task
@@ -76,7 +77,7 @@ class ProfilerCrew:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
-            verbose=True,
+            verbose=is_verbose(),
         )
 
 

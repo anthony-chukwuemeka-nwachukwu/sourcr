@@ -21,6 +21,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
 
+from sourcr.config import is_verbose
 from sourcr.llm import get_llm
 from sourcr.models import ContactSet
 
@@ -55,7 +56,7 @@ class ContactCrew:
             config=self.agents_config["contact_finder"],
             tools=[SerperDevTool()],
             llm=get_llm("contact"),
-            verbose=True,
+            verbose=is_verbose(),
         )
 
     @task
@@ -73,7 +74,7 @@ class ContactCrew:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
-            verbose=True,
+            verbose=is_verbose(),
         )
 
 
