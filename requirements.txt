@@ -1,5 +1,7 @@
-# Core framework: agents, tasks, and flows
-crewai>=1.14.7,<2.0.0
+# Core framework: agents, tasks, and flows.
+# [anthropic] adds the native Anthropic provider (the brief agent runs on
+# Claude). OpenAI works out of the box; add other provider extras as needed.
+crewai[anthropic]>=1.14.7,<2.0.0
 
 # Prebuilt tools, including SerperDevTool for web search
 crewai-tools>=0.17.0

@@ -1,0 +1,33 @@
+# Task definition for the Reporting crew.
+# {company_name}, {thesis}, {profile}, {contacts} come from the kickoff inputs.
+
+write_brief_task:
+  description: >
+    Write a concise Opportunity Brief for "{company_name}", for an investor
+    evaluating it against this thesis:
+
+    {thesis}
+
+    Verified company profile (facts with confidence tags):
+    {profile}
+
+    Decision-makers (from public sources):
+    {contacts}
+
+    This is SYNTHESIS, not research — do not introduce new facts, look anything
+    up, or change confidence tags. Using only the information provided, produce:
+      - summary: a 2-4 sentence overview of the company.
+      - fit_rationale: how well it fits the thesis, explicitly weighing the
+        confidence of the supporting facts and calling out any thesis-breakers
+        (e.g. no longer founder-led, size outside the band, wrong geography).
+        Lead with the thesis-breakers if any exist.
+      - key_facts: carry over the most decision-relevant facts, KEEPING their
+        confidence tags and sources exactly (never upgrade confidence).
+      - decision_makers: carry over the provided contacts.
+      - overall_confidence: HIGH / MEDIUM / LOW / NEEDS_REVIEW, reflecting how
+        well-supported the opportunity is overall.
+  expected_output: >
+    An opportunity brief with a summary, a fit rationale, key facts (each with
+    its confidence tag and sources), the decision-makers, and an overall
+    confidence flag.
+  agent: brief_writer

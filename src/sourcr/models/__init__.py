@@ -8,10 +8,12 @@ Everything is re-exported here, so callers keep importing from one place
     research  -> Candidate / CandidateList   (Research crew output)
     profiler  -> CompanyProfile / FactClaim  (Profiler crew output)
     contact   -> Contact / ContactSet        (Contact crew output)
+    reporting -> OpportunityBrief             (Reporting crew output)
 """
 
 from .contact import Contact, ContactSet
 from .profiler import CompanyProfile, ConfidenceLevel, FactClaim, OverallConfidence
+from .reporting import OpportunityBrief
 from .research import Candidate, CandidateList
 from .shared import EXAMPLE_THESIS, IndustryFocus, InvestmentThesis, OwnershipType
 
@@ -32,4 +34,6 @@ __all__ = [
     # contact
     "Contact",
     "ContactSet",
+    # reporting
+    "OpportunityBrief",
 ]
