@@ -103,11 +103,6 @@ via `DEFAULT_MODEL` / `<AGENT>_MODEL`.
 ## Running
 
 ```powershell
-# Web UI — thesis form + rendered briefs and chart (from the project root)
-streamlit run app.py
-```
-
-```powershell
 cd src
 
 # Full pipeline (writes briefs + chart + sourcr.db to output/)
