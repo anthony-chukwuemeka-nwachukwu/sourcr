@@ -1,41 +1,139 @@
 # Sourcr
 
-A multi-agent M&A target-sourcing pipeline built with **CrewAI Flows**.
+A multi-agent **M&A target-sourcing pipeline** built with [CrewAI](https://docs.crewai.com/) Flows.
 
-Given an investment thesis (industry, size, geography, ownership profile),
-Sourcr identifies candidate private companies, then runs two agents **in
-parallel** — a **Profiler** (size, ownership, fit, confidence-tagged facts)
-and a **Contact Finder** (likely decision-makers from public sources) — and
-merges their output into a structured **Opportunity Brief** per company.
+Given an investment thesis (industry, size, geography, ownership), Sourcr finds
+candidate private companies, **verifies** them with confidence-tagged facts,
+surfaces likely **decision-makers** from public sources, and writes a
+decision-ready **Opportunity Brief** per company — automating the
+research-intensive front end of lower-middle-market deal origination.
 
-Inspired by the front end of a lower-middle-market buy-side origination
-process: thesis intake → company identification → verification → brief.
+It is deliberately AI-forward: a CrewAI Flow orchestrates four specialized
+crews, runs two of them **in parallel**, mixes LLM providers per agent, and
+keeps a small knowledge base so it never re-researches (or resurfaces) a
+company it already knows.
 
-## Architecture (planned)
+## Architecture
 
 ```
-SourcingFlow                       CrewAI Flow — owns sequencing + state
+SourcingFlow (main.py)                         CrewAI Flow — owns sequencing + state
 │
-├─ load thesis
-├─ ResearchCrew        → candidate companies
+├─ begin            load the investment thesis
+├─ research         ResearchCrew  →  candidate companies                        [Serper]
+│                   route each candidate via the store:
+│                     • excluded?      → skip (conflict register)
+│                     • fresh in cache → reuse
+│                     • new / stale    → queue for research
 │
-├─ ProfilerCrew    ┐   run in parallel (independent of each other)
-├─ ContactCrew     ┘
+├─ profile_companies  ProfilerCrew  ┐  run IN PARALLEL                          [Tavily]
+├─ find_contacts      ContactCrew   ┘  (two @listen(research) branches)         [Serper]
 │
-└─ ReportingCrew       → Opportunity Briefs (merges Profiler + Contact)
+└─ write_briefs     after BOTH finish (and_):  ReportingCrew  →  Opportunity Briefs
+                    reconcile vs. the profile, save to the store,
+                    render Markdown + a pipeline confidence chart to output/
+        ▲
+   ResearchStore (SQLite): research cache + conflict register
 ```
 
-Each crew is its own module with its own `agents.yaml` / `tasks.yaml`, so it
-can be understood, run, and tested on its own. The Flow is the only piece
-that knows the order things run in.
+## Design highlights
+
+- **CrewAI Flow with real parallelism** — Profiler and Contact run concurrently
+  (`@listen(research)` ×2, joined by `and_(...)`), fanning out across candidates
+  with `asyncio.gather`.
+- **Provider-agnostic, per-agent models** — each agent's model is an env var
+  (`<AGENT>_MODEL` → `DEFAULT_MODEL`); the demo mixes **OpenAI** (research /
+  profiling / contacts) and **Claude** (the written brief) with no code change.
+- **Confidence-tagged verification** — every fact is graded
+  `VERIFIED / LIKELY / UNVERIFIED / CONFLICTING`; the Profiler favors independent
+  sources and treats multiple pages of one domain as a single source.
+- **Self-correcting guardrails** — each crew's task re-runs (bounded retries)
+  when its output is structurally bad (missing sources, duplicates, empty
+  fields), feeding the reason back to the agent.
+- **Knowledge base + conflict register** — SQLite store caches profiled
+  companies (TTL freshness) and tracks pipeline status so the router skips
+  companies already in play or passed on.
+- **Synthesis-integrity reconciliation** — the Flow checks the brief's facts
+  against the source profile and flags any fabricated sources.
+- **Presentation in Python, not the LLM** — the Markdown tables and the
+  confidence chart are rendered deterministically from structured Pydantic
+  output (reproducible and unit-testable).
+- **Ethical contact research** — public professional sources only (leadership
+  pages, press, LinkedIn); never personal/private contact details.
+- **Tested** — fast, deterministic unit tests (no API) for all guardrails,
+  validators, the store, the renderer, the plot, and flow helpers, plus one
+  opt-in live end-to-end test.
+
+## Project layout
+
+```
+src/sourcr/
+├── main.py              # the SourcingFlow + CLI entrypoint
+├── llm.py               # provider-agnostic, per-agent LLM factory
+├── store.py             # SQLite research store + conflict register
+├── plot.py              # pipeline confidence chart (matplotlib)
+├── models/              # Pydantic contracts: shared, research, profiler,
+│                        #   contact, reporting, storage
+└── crews/
+    ├── research_crew/   # find candidates            (Serper)
+    ├── profiler_crew/   # verify + confidence-tag    (Tavily)
+    ├── contact_crew/    # decision-makers            (Serper, public only)
+    └── reporting_crew/  # synthesize brief + render.py (Markdown/tables)
+tests/                   # deterministic unit tests + opt-in integration test
+```
+
+Each crew is self-contained (`agents.yaml` + `tasks.yaml` + a `@CrewBase`
+class) and runnable on its own.
+
+## Setup
+
+Requires **Python 3.13** (CrewAI does not yet support 3.14).
+
+```powershell
+py -3.13 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt          # add -r requirements-dev.txt for tests
+
+copy .env.example .env                    # then fill in the keys below
+```
+
+Keys in `.env`: `OPENAI_API_KEY`, `SERPER_API_KEY`, `TAVILY_API_KEY`, and
+`ANTHROPIC_API_KEY` (the brief agent runs on Claude). Models are configurable
+via `DEFAULT_MODEL` / `<AGENT>_MODEL`.
+
+## Running
+
+```powershell
+cd src
+
+# Full pipeline (writes briefs + chart + sourcr.db to output/)
+python -m sourcr.main
+
+# Any crew on its own
+python -m sourcr.crews.research_crew.research_crew
+python -m sourcr.crews.profiler_crew.profiler_crew
+python -m sourcr.crews.contact_crew.contact_crew
+python -m sourcr.crews.reporting_crew.reporting_crew
+```
+
+Tip: run the full pipeline twice — the second run reuses the cached companies
+and skips re-researching them (the knowledge base + router at work).
+
+## Tests
+
+```powershell
+python -m pytest                 # fast, deterministic — no API calls
+# opt-in live end-to-end test (real API): set RUN_LIVE=1 in .env, or:
+$env:RUN_LIVE=1; python -m pytest tests/test_integration.py -v
+```
+
+## Output (`output/`)
+
+- `brief-<company>.md` — Opportunity Brief per company (summary, fit, key-facts
+  table, decision-makers table)
+- `pipeline_confidence.png` — fact-confidence comparison across companies
+- `sourcr.db` — the SQLite research store / conflict register
 
 ## Stack
 
-- [CrewAI](https://docs.crewai.com/) (v1.14.7) — agents, tasks, flows
-- `SerperDevTool` — web search
-- Anthropic Claude — agent LLM
-- Pydantic — typed inputs/outputs between stages
-
-## Status
-
-🚧 Early development — building one crew at a time, committing at each stage.
+CrewAI 1.14 (agents, tasks, flows) · OpenAI + Anthropic (LiteLLM) · Serper &
+Tavily (search) · Pydantic (typed contracts) · SQLite · matplotlib · pytest.
