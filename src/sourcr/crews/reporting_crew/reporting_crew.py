@@ -13,11 +13,32 @@ Run standalone (from the src/ directory):
     python -m sourcr.crews.reporting_crew.reporting_crew
 """
 
+from typing import Any, Tuple
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
 from sourcr.llm import get_llm
 from sourcr.models import OpportunityBrief
+
+
+def validate_brief(output) -> Tuple[bool, Any]:
+    """Guardrail: re-run if the brief is structurally incomplete.
+
+    Structural checks only. Whether the writer preserved facts/confidence
+    faithfully (no invented facts, no upgraded tags) is reconciled in the Flow,
+    which holds both the source profile and the resulting brief.
+    """
+    brief: OpportunityBrief = output.pydantic
+    if brief is None:
+        return (False, "No brief was produced.")
+    if not brief.summary.strip():
+        return (False, "summary is empty — write a 2-4 sentence overview.")
+    if not brief.fit_rationale.strip():
+        return (False, "fit_rationale is empty — assess fit against the thesis.")
+    if not brief.key_facts:
+        return (False, "No key_facts — carry over the decision-relevant facts from the profile.")
+    return (True, brief)
 
 
 @CrewBase
@@ -41,6 +62,8 @@ class ReportingCrew:
         return Task(
             config=self.tasks_config["write_brief_task"],
             output_pydantic=OpportunityBrief,
+            guardrail=validate_brief,        # re-run if the brief is incomplete
+            max_retries=3,
         )
 
     @crew
